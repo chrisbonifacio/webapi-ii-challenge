@@ -14,19 +14,24 @@ router.get("/", (req, res) => {
     .catch(err => res.status(500).json({ error: err }))
 })
 
-// GET posts by id
-router.get("/:id", (req, res) => {
+// GET post by ID
+router.get("/:id", async (req, res) => {
   const id = req.params.id
 
-  Posts.findById(id)
-    .then(post => {
-      res.status(200).json(post)
-    })
-    .catch(err => {
+  try {
+    const post = await Posts.findById(id)
+    if (!post.length) {
       res
         .status(404)
-        .json({ message: "Could not find the post with the specified id" })
-    })
+        .json({ message: "The post with the specified ID does not exist" })
+    } else {
+      res.status(200).json(post)
+    }
+  } catch (err) {
+    res
+      .status(500)
+      .json({ error: "The post information could not be retrieved" })
+  }
 })
 
 // POST new post
