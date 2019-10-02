@@ -31,6 +31,7 @@ function update(id, post) {
   return db("posts")
     .where("id", Number(id))
     .update(post)
+    .then(ids => ({ id: ids[0], post }))
 }
 
 function remove(id) {

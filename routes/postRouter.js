@@ -3,6 +3,8 @@ const Posts = require("../data/db")
 
 const router = express.Router()
 
+/*********** Posts  **************/
+
 // GET posts
 router.get("/", (req, res) => {
   Posts.find()
@@ -10,6 +12,21 @@ router.get("/", (req, res) => {
       res.status(200).json(posts)
     })
     .catch(err => res.status(500).json({ error: err }))
+})
+
+// GET posts by id
+router.get("/:id", (req, res) => {
+  const id = req.params.id
+
+  Posts.findById(id)
+    .then(post => {
+      res.status(200).json(post)
+    })
+    .catch(err => {
+      res
+        .status(404)
+        .json({ message: "Could not find the post with the specified id" })
+    })
 })
 
 // POST new post
@@ -31,6 +48,44 @@ router.post("/", (req, res) => {
       })
   }
 })
+
+// PUT update post by ID
+router.put("/:id", async (req, res) => {
+  const id = req.params.id
+  const changes = req.body
+
+  Posts.update(id, changes)
+    .then(({ post }) => {
+      res.status(200).json({ post })
+    })
+    .catch(err => {
+      res.status(500).json({
+        message: "There was a problem updating the post in the database"
+      })
+    })
+})
+
+// DELETE post by ID
+router.delete("/:id", async (req, res) => {
+  const id = req.params.id
+
+  try {
+    var post = await Posts.findById(id)
+  } catch (e) {
+    res
+      .status(404)
+      .json({ message: "The post with the specified ID does not exist" })
+  }
+
+  try {
+    await Posts.remove(id)
+    res.status(200).json(post)
+  } catch (e) {
+    res.status(500).json({ error: "The post could not be removed" })
+  }
+})
+
+/********** Comments ***************/
 
 // GET comments from post by ID
 router.get("/:id/comments", (req, res) => {
@@ -70,26 +125,6 @@ router.post("/:id/comments", async (req, res) => {
     res.status(500).json({
       error: "There was a problem retrieving the comment from the database"
     })
-  }
-})
-
-// DELETE post by ID
-router.delete("/:id", async (req, res) => {
-  const id = req.params.id
-
-  try {
-    var post = await Posts.findById(id)
-  } catch (e) {
-    res
-      .status(404)
-      .json({ message: "The post with the specified ID does not exist" })
-  }
-
-  try {
-    await Posts.remove(id)
-    res.status(200).json(post)
-  } catch (e) {
-    res.status(500).json({ error: "The post could not be removed" })
   }
 })
 
